@@ -2,6 +2,9 @@ const express = require('express');
 const app = express();
 const path = require('path');
 
+// MongoDB ObjectId()
+const { ObjectId } = require('mongodb');
+
 // React 연동
 app.use(express.static(path.join(__dirname, 'app/build')));
 
@@ -12,6 +15,10 @@ app.use(cors());
 
 // dotenv
 require('dotenv').config();
+
+// body-parser
+app.use(express.urlencoded({extended: true}))
+
 
 const db_id = process.env.DB_ID;
 const db_pw = process.env.DB_PW;
@@ -49,6 +56,24 @@ app.post('/login', (req, res)=>{
         }
     })
 
+})
+
+app.get('/list', (req, res)=>{
+    let _id = ObjectId(req.query._id);
+    db.collection('group').find({ members: { $elemMatch: { _id: _id} } }).toArray().then((result)=>{
+        res.send(result);
+    })
+
+    // --새그룹만들기--
+    // let members = [
+    //     {_id: ObjectId('62cfd01aa89591c1c72027c0'), id: 'test', rank: 0}, 
+    //     {_id: ObjectId('62d5142ec0495cc6b894fcbc'), id: 'test2', rank: 1}, 
+    // ]
+    // let name = '으에으이아';
+    // db.collection('group').insertOne({members: members, name: name}).then((result)=>{
+    //     console.log('insertId: ' + result.insertedId);
+    //     res.send(result);
+    // })
 })
 
 app.get('*', (req, res)=>{
