@@ -66,8 +66,8 @@ app.get('/list', (req, res)=>{
 
     // --새그룹만들기--
     // let members = [
-    //     {_id: ObjectId('62cfd01aa89591c1c72027c0'), id: 'test', rank: 0}, 
-    //     {_id: ObjectId('62d5142ec0495cc6b894fcbc'), id: 'test2', rank: 1}, 
+    //     {_id: ObjectId('62cfd01aa89591c1c72027c0'), id: 'test', rank: 'master'}, 
+    //     {_id: ObjectId('62d5142ec0495cc6b894fcbc'), id: 'test2', rank: 'normal'}, 
     // ]
     // let name = '으에으이아';
     // db.collection('group').insertOne({members: members, name: name}).then((result)=>{
@@ -77,7 +77,7 @@ app.get('/list', (req, res)=>{
 })
 
 app.post('/raid', (req, res)=>{
-    let raid_name = req.body.raid_name;
+    let name = req.body.name;
     let d_date = req.body.d_date;
     let d_time = req.body.d_time;
     let group_id = ObjectId(req.body.group_id);
@@ -85,9 +85,10 @@ app.post('/raid', (req, res)=>{
     let members = [{ 
         _id: ObjectId(req.body.master_id), 
         name: req.body.master_name, 
-        condition: 0, 
+        status: 'default', 
+        rank: 'master', 
      }]
-    db.collection('raid').insertOne({raid_name: raid_name, d_date: d_date, d_time: d_time, members: members, group_id: group_id, group_name: group_name}).then((result)=>{
+    db.collection('raid').insertOne({name: name, d_date: d_date, d_time: d_time, members: members, group_id: group_id, group_name: group_name}).then((result)=>{
         res.send({code: 1, msg: '레이드 등록', data: result});
     })
 })
