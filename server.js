@@ -93,13 +93,21 @@ app.post('/raid', (req, res)=>{
     })
 })
 
-app.get('/raid', (req, res)=>{
+app.get('/raids', (req, res)=>{
     let group_id = ObjectId(req.query.group_id);
     db.collection('raid').find({ group_id: group_id }).toArray().then((result)=>{
         res.send(result);
     }).catch((error)=>{
         console.log('error: ' + error);
     })
+})
+
+app.get('/raid', (req, res)=>{
+    let _id = ObjectId(req.query._id);
+    db.collection('raid').findOne({ _id: _id }).then((result)=>{
+        res.send(result);
+    })
+
 })
 
 app.get('*', (req, res)=>{
