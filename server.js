@@ -107,8 +107,46 @@ app.get('/raid', (req, res)=>{
     db.collection('raid').findOne({ _id: _id }).then((result)=>{
         res.send(result);
     })
-
 })
+
+app.put('/raid/member', (req, res)=>{
+    let raid_id = ObjectId(req.body.raid_id);
+    let user_id = ObjectId(req.body.user_id);
+    let user_name = req.body.user_name;
+
+    db.collection('user').findOne({ _id: user_id }, (error, result)=>{
+        if(result){
+            res.send({code: 0, msg: '이미 소속된 유저입니다.'});
+        } else {
+            db.collection('raid').updateOne(
+                { _id: raid_id }, 
+                {
+                    $push: {
+                        members: {
+                            _id: user_id, 
+                            name: user_name, 
+                            status: 'default', 
+                            rank: 'normal', 
+                        }
+                    }
+                }
+            ).then((result)=>{
+                res.send({code: 1, msg: '유저 추가 완료', data: result});
+            })
+        }
+
+    })
+})
+
+// app.put('/raid/member/status', (req, res)=>{
+//     let raid_id = ObjectId(req.body.raid_id);
+//     let user_id = ObjectId(req.body.user_id);
+//     let target_status = req.body.target_status;
+
+//     db.collection('raid').updateOne({ _id: raid_id, 'members._id': user_id }, { $set: { 'members.status': target_status } }).then((result)=>{
+//         res.send(result)
+//     })
+// })
 
 app.get('*', (req, res)=>{
     console.log('*로 들어옴');
