@@ -19,6 +19,7 @@ require('dotenv').config();
 // body-parser
 app.use(express.urlencoded({extended: true}))
 
+const crypto = require('crypto');
 
 const db_id = process.env.DB_ID;
 const db_pw = process.env.DB_PW;
@@ -38,6 +39,9 @@ MongoClient.connect(db_url, (error, client)=>{
     })
 })
 
+function testFn(){
+
+}
 
 app.get('/', (req, res)=>{
     console.log('메인 들어옴');
@@ -45,6 +49,7 @@ app.get('/', (req, res)=>{
 })
 
 app.post('/login', (req, res)=>{
+    testFn();
     let name = req.body.name;
     db.collection('user').findOne({name: name}, (error, result)=>{
         if(result){
@@ -136,6 +141,32 @@ app.put('/raid/member', (req, res)=>{
         }
 
     })
+})
+
+app.get('/group/code', (req, res)=>{
+    let group_id = ObjectId(req.query.group_id);
+    
+    db.collection('invite').find({ expired: false }).toArray().then((result)=>{
+        if(result){
+            let code = '';
+            let obj = result.find(x => x.group_id.equals(group_id));
+            if(obj){  // group_id 로 데이터가 있으면 바로 code 리턴
+                code = obj.code;
+            } else {  // 없으면 code 생성 후 등록
+                do {
+                    code = crypto.randomBytes(20).toString('hex').slice(0, 5);
+                } while (result.find(x => x.code == code))
+
+                db.collection('invite').insertOne({ code: code, group_id, group_id, created_date: new Date(), expired: false }).then((result)=>{
+                    console.log('insert invite code - done');
+                })
+            }
+            res.send({ code });
+        }
+    })
+
+
+    
 })
 
 // app.put('/raid/member/status', (req, res)=>{
