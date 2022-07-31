@@ -100,7 +100,8 @@ app.post('/raid', (req, res)=>{
 
 app.get('/raids', (req, res)=>{
     let group_id = ObjectId(req.query.group_id);
-    db.collection('raid').find({ group_id: group_id }).toArray().then((result)=>{
+    let user_id = ObjectId(req.query.user_id);
+    db.collection('raid').find({ group_id: group_id, members: { $elemMatch: { _id: user_id} } }).toArray().then((result)=>{
         res.send(result);
     }).catch((error)=>{
         console.log('error: ' + error);
@@ -119,7 +120,7 @@ app.put('/raid/member', (req, res)=>{
     let user_id = ObjectId(req.body.user_id);
     let user_name = req.body.user_name;
 
-    db.collection('user').findOne({ _id: user_id }, (error, result)=>{
+    db.collection('raid').findOne({ _id: raid_id, members: { $elemMatch: { _id: user_id} } }, (error, result)=>{
         if(result){
             res.send({code: 0, msg: '이미 소속된 유저입니다.'});
         } else {
@@ -139,7 +140,6 @@ app.put('/raid/member', (req, res)=>{
                 res.send({code: 1, msg: '유저 추가 완료', data: result});
             })
         }
-
     })
 })
 
@@ -164,9 +164,40 @@ app.get('/group/code', (req, res)=>{
             res.send({ code });
         }
     })
+})
 
+app.post('/group/member', (req, res)=>{
+    let code = req.body.code;
+    let user_id = ObjectId(req.body.user_id);
+    let user_name = req.body.user_name;
 
-    
+    db.collection('invite').findOne({ code: code, expired: false }).then((result)=>{
+        if(result){
+            let group_id = result.group_id;
+            db.collection('group').findOne({ _id: group_id, members: { $elemMatch: {_id: user_id} } }).then((result)=>{
+                if(result){
+                    res.send({response: 0, variant: 'warning', message: '이미 그룹에 속해있습니다.'});
+                } else {
+                    db.collection('group').updateOne(
+                        { _id: group_id }, 
+                        {
+                            $push: {
+                                members: {
+                                    _id: user_id, 
+                                    name: user_name, 
+                                    rank: 'normal', 
+                                }
+                            }
+                        }
+                    ).then((result)=>{
+                        res.send({response: 1, variant: 'primary', message: '그룹 추가 완료'});
+                    })
+                }
+            })
+        } else {
+            res.send({response: 0, variant: 'danger', message: '유효하지 않은 초대코드 입니다.'});
+        }
+    })
 })
 
 // app.put('/raid/member/status', (req, res)=>{
