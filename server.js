@@ -200,6 +200,20 @@ app.post('/group/member', (req, res)=>{
     })
 })
 
+app.delete('/raid', (req, res)=>{
+    let raid_id = ObjectId(req.body.raid_id);
+    let user_id = ObjectId(req.body.user_id);
+
+    db.collection('raid').findOne({ _id: raid_id, members: { $elemMatch: { _id: user_id, rank: 'master' } } }).then((result)=>{
+        if(result){
+            db.collection('raid').deleteOne({ _id: raid_id }, (error, result)=>{
+                if(error) return console.log(error);
+                res.send({response: 1, variant: 'primary', message: '레이드 삭제 완료'});
+            })
+        }
+    })
+})
+
 // app.put('/raid/member/status', (req, res)=>{
 //     let raid_id = ObjectId(req.body.raid_id);
 //     let user_id = ObjectId(req.body.user_id);
