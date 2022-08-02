@@ -214,15 +214,15 @@ app.delete('/raid', (req, res)=>{
     })
 })
 
-// app.put('/raid/member/status', (req, res)=>{
-//     let raid_id = ObjectId(req.body.raid_id);
-//     let user_id = ObjectId(req.body.user_id);
-//     let target_status = req.body.target_status;
+app.put('/raid/member/status', (req, res)=>{
+    let raid_id = ObjectId(req.body.raid_id);
+    let user_id = ObjectId(req.body.user_id);
+    let target_status = req.body.target_status;
 
-//     db.collection('raid').updateOne({ _id: raid_id, 'members._id': user_id }, { $set: { 'members.status': target_status } }).then((result)=>{
-//         res.send(result)
-//     })
-// })
+    db.collection('raid').updateOne({ _id: raid_id, members: { $elemMatch: { _id: user_id } } }, { $set: { 'members.$.status': target_status } }).then((result)=>{
+        res.send(result)
+    })
+})
 
 app.get('*', (req, res)=>{
     console.log('*로 들어옴');
