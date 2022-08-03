@@ -122,7 +122,7 @@ app.put('/raid/member', (req, res)=>{
 
     db.collection('raid').findOne({ _id: raid_id, members: { $elemMatch: { _id: user_id} } }, (error, result)=>{
         if(result){
-            res.send({code: 0, msg: '이미 소속된 유저입니다.'});
+            res.send({response: 0, variant: 'warning', message: '이미 그룹에 속해있습니다.'});
         } else {
             db.collection('raid').updateOne(
                 { _id: raid_id }, 
@@ -137,7 +137,7 @@ app.put('/raid/member', (req, res)=>{
                     }
                 }
             ).then((result)=>{
-                res.send({code: 1, msg: '유저 추가 완료', data: result});
+                res.send({response: 1, variant: 'primary', message: '유저 추가 완료'});
             })
         }
     })
