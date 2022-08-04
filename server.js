@@ -108,13 +108,6 @@ app.get('/raids', (req, res)=>{
     })
 })
 
-app.get('/raid', (req, res)=>{
-    let _id = ObjectId(req.query._id);
-    db.collection('raid').findOne({ _id: _id }).then((result)=>{
-        res.send(result);
-    })
-})
-
 app.put('/raid/member', (req, res)=>{
     let raid_id = ObjectId(req.body.raid_id);
     let user_id = ObjectId(req.body.user_id);
@@ -219,8 +212,48 @@ app.put('/raid/member/status', (req, res)=>{
     let user_id = ObjectId(req.body.user_id);
     let target_status = req.body.target_status;
 
-    db.collection('raid').updateOne({ _id: raid_id, members: { $elemMatch: { _id: user_id } } }, { $set: { 'members.$.status': target_status } }).then((result)=>{
+    db.collection('raid').updateOne(
+        { 
+            _id: raid_id, 
+            members: { 
+                $elemMatch: { 
+                    _id: user_id 
+                } 
+            } 
+        }, { 
+            $set: { 
+                'members.$.status': target_status 
+            } 
+        }).then((result)=>{
         res.send(result)
+    })
+})
+
+app.delete('/raid/member', (req, res)=>{
+    let raid_id = ObjectId(req.body.raid_id);
+    let user_id = ObjectId(req.body.user_id);
+
+    db.collection('raid').findOne({ _id: raid_id, members: { $elemMatch: { _id: user_id} } }, (error, result)=>{
+        if(result){
+            if(result.members.find(x => x._id.equals(user_id)).rank == 'master'){
+                res.send({response: 0, variant: 'warning', message: '레이드 창설자는 추방할 수 없습니다.'});
+            } else {
+                db.collection('raid').updateOne(
+                    { _id: raid_id }, 
+                    {
+                        $pull: {
+                            members: {
+                                _id: user_id
+                            }
+                        }
+                    }
+                ).then((result)=>{
+                    res.send({response: 1, variant: 'primary', message: '유저 제외 완료'});
+                })
+            }
+        } else {
+            res.send({response: 0, variant: 'warning', message: '그룹에 속하지 않은 멤버입니다.'});
+        }
     })
 })
 
