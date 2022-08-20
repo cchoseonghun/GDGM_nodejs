@@ -257,6 +257,12 @@ app.delete('/raid/member', (req, res)=>{
     })
 })
 
+app.get('/api/portfolio', (req, res)=>{
+    db.collection('portfolio').find().sort({ 'number': -1 }).toArray().then((result)=>{
+        res.json(result);
+    })
+})
+
 app.get('*', (req, res)=>{
     console.log('*로 들어옴');
     res.sendFile(path.join(__dirname, 'app/build/index.html'));
